@@ -1,0 +1,130 @@
+---
+layout: base
+permalink: /binary/
+title: Binary
+---
+
+<head></head>
+<style>
+    .page-content {
+        background-image: url('/BinaryWizards/images/binary1.png');
+        background-color: #000000;
+    }
+    .box {
+        width: 100px;
+        height: 100px;
+        background-color: #78c9ae;
+        margin-right: 10px;
+        text-align: center;
+        line-height: 100px;
+        float: left;
+        transition: background-color 0.3s ease;
+    }
+    .box:hover {
+        background-color: #5a9c90;
+    }
+    .container {
+        margin-bottom: 50px;
+    }
+    .numLabels {
+        background-color: black;
+    }
+</style>
+<body>
+    <div class="numLabels">
+        <label class="binaryNum" id="binaryNum"></label>
+        <label id="lives"></label>
+    </div>
+    <div id="container"></div>
+    <div class = "table">
+        <!-- {% include binaryfile.html %} -->
+        {% include mariosprite.html %}
+    </div>
+    <button id="check">Check my answer!</button>
+    <label id="rightorwrong"></label>
+    <script>
+        var assets = {
+            players: {
+                mario: {
+                  src: "/images/platformer/sprites/mario.png",
+                  width: 256,
+                  height: 256,
+                  w: { row: 10, frames: 15 },
+                  wa: { row: 11, frames: 15 },
+                  wd: { row: 10, frames: 15 },
+                  a: { row: 3, frames: 7, idleFrame: { column: 7, frames: 0 } },
+                  s: {  },
+                  d: { row: 2, frames: 7, idleFrame: { column: 7, frames: 0 } }
+                }
+            }
+        };
+        Object.keys(assets).forEach(category => {
+            Object.keys(assets[category]).forEach(assetName => {
+              assets[category][assetName]['file'] = "{{site.baseurl}}" + assets[category][assetName].src;
+            });
+          });
+        var score = 0;
+        var answer = 0;
+        var lives = 3;
+        document.getElementById("lives").innerHTML = "Lives: " + lives;
+        const container = document.getElementById("container");
+        for (let i = 0; i < 8; i++) {
+            const box = document.createElement("div");
+            box.classList.add("box");
+            box.textContent = "0";
+            box.addEventListener("click", function() {
+                toggleNumber(box);
+            });
+            container.appendChild(box);
+        }
+        check.addEventListener("click", function() {
+             if(lives>0) {
+                var boxValues = "";
+                const boxes = document.querySelectorAll(".box");
+                boxes.forEach(box => {
+                    boxValues += box.textContent;
+                });
+                if (parseInt(boxValues)==answer) {
+                    document.getElementById("rightorwrong").innerHTML = "Correct!"
+                    newNumber();
+                    score+=10;
+                    console.log(score);
+                } else {
+                    document.getElementById("rightorwrong").innerHTML = "Incorrect. Try again."
+                    lives-=1;
+                    document.getElementById("lives").innerHTML = "Lives: " + lives;
+                }
+            }
+            if (lives==0) {
+                document.getElementById("rightorwrong").innerHTML = "Game over. your score is: " + score;
+                if (score>sessionStorage.getItem("binaryScore")) {
+                    sessionStorage.setItem("binaryScore", score);
+                }
+            }
+        });
+        function toggleNumber(box) {
+            if (box.textContent === "0") {
+                box.textContent = "1";
+            } else {
+                box.textContent = "0";
+            }
+        }
+        function newNumber() {
+            fetch("http://localhost:8098/game/binary", {method: 'GET', headers: {'Content-Type':'application/json'}})
+            .then(response => { 
+                if (!response.ok) {
+                    return response.text().then(errorMsg => {
+                        alert('Error: ' + errorMsg);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(JSON.stringify(data))
+                answer = data.numbers[0];
+                document.getElementById("binaryNum").innerHTML = "Your number is: " + data.numbers[1]
+            })
+        }
+        newNumber();
+    </script>
+</body>

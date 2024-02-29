@@ -1,0 +1,226 @@
+---
+comments: true
+title: Login
+permalink: login.html
+layout: base
+---
+
+<head></head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f2f2f2;
+    }
+
+    .page-content {
+        background-image: url('/BinaryWizards/images/logo.png');
+        background-repeat: no-repeat;
+        background-color: #B5C689;
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 400px;
+    }
+
+    .card {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 350px;
+        margin-right: 10px; /* Adjusted margin between cards */
+    }
+
+    .card2 {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 350px;
+        margin-left: 0px; /* Adjusted margin between cards */
+    }
+
+    h3 {
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-sizing: border-box;
+    }
+
+    .Buttons {
+        text-align: center;
+    }
+
+    .LoginB, .signUpButton {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 3px;
+    }
+
+    .LoginB:hover, .signUpButton:hover {
+        background-color: #0056b3;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .login-container {
+            flex-direction: column;
+        }
+        .card, .card2 {
+            width: 80%;
+            margin: 0 auto 20px; /* Center cards vertically and add margin */
+        }
+    }
+</style>
+<body>
+    <div class="login-container">
+    <div class="card">
+        <h3></h3>
+        <div class="Email">
+            <input id="Emaillogin" class="input" placeholder="Email">
+        </div>
+        <div class="Password">
+            <input id="PasswordLogin" class="input" placeholder="Password">
+        </div>
+        <div class="Buttons">
+            <button class="LoginB" onclick="person_login()">Login</button>
+        </div>
+    </div>
+</div>
+
+<div class="login-container">
+    <div class="card2">
+        <h3>Sign-Up</h3>
+        <div class="Name">
+            <input id="signUpNameInput" class="input" placeholder="Name">
+        </div>
+        <div class="Email">
+            <input id="signUpEmailInput" class="input" placeholder="Email">
+        </div>
+        <div class="Password">
+            <input id="signUpPasswordInput" type="password" class="input" placeholder="Password">
+        </div>
+        <div class="Dob">
+            <input id="signUpDobInput" class="input" placeholder="Date of birth (MM-DD-YYYY)">
+        </div>
+        <div class="Buttons">
+            <button class="signUpButton" onclick="person_signup()">Sign Up</button>
+        </div>
+    </div>
+</div>
+
+<!-- <div>
+    <button class="SignupButton" onclick="go_signup()">Don't have an account? Sign up.</button>
+</div> -->
+
+<script>
+    function person_login() {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "email": document.getElementById("Emaillogin").value,
+            "password": document.getElementById("PasswordLogin").value
+
+            
+        });
+        console.log(raw);
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            credentials: 'include',  // 
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost:8098/authenticate", requestOptions)
+        .then(response => {
+            if (!response.ok) {
+                const errorMsg = 'Login error: ' + response.status;
+                console.log(errorMsg);
+
+                switch (response.status) {
+                    case 401:
+                        alert(" 401 error you have typed in wrong user or pass");
+                        break;
+                    case 403:
+                        alert("Sorry you cant do that ");
+                        break;
+                    case 404:
+                        alert("We cant Seem To Locate that in our system try again?");
+                        break;
+                    
+                    default:
+                        alert("Login failed. Please try again later.");
+                }
+
+                return Promise.reject('Login failed');
+            }
+            return response.text()
+        })
+        .then(result => {
+            console.log(result);
+            sessionStorage.setItem("username", document.getElementById("Emaillogin").value);
+            sessionStorage.setItem("binaryScore", 0);
+            window.location.replace("/BinaryWizards/games/")
+        })
+        .catch(error => console.error('Error during login:', error));
+
+    }
+
+    function person_signup() {
+        var requestOptions = {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'include',
+        };
+
+        let fetchName = document.getElementById("signUpNameInput").value;
+        let fetchEmail = document.getElementById("signUpEmailInput").value;
+        let fetchPassword = document.getElementById("signUpPasswordInput").value;
+        let fetchDob = document.getElementById("signUpDobInput").value;
+
+        let requestURL = `http://localhost:8098/api/person/post?email=${fetchEmail}&password=${fetchPassword}&name=${fetchName}&dob=${fetchDob}`;
+        console.log(requestURL)
+
+        fetch(requestURL, requestOptions)
+        .then(response => {
+                if (!response.ok) {
+                    return response.text().then(errorMsg => {
+                        alert('Error: ' + errorMsg);
+                    });
+                }
+    
+                alert("Signed up");
+                location.reload();
+                
+            })
+            .catch(error => {
+                alert('An unexpected error occurred: ' + error.message);
+            });
+    }
+
+    function go_signup() {
+        window.location.replace("/BinaryWizards/signup/");
+    }
+</script>
+</body>
